@@ -1,1 +1,296 @@
+import pygame,time, random as RA, ctypes as ct
+from pygame.locals import *
 
+#---------------------------------------------------------------------
+# Definicion de Constantes.-
+#---------------------------------------------------------------------
+nRES = (629,860) ; nMAX_MALOS = 9
+nPOS_MAX_Y_1 = 710 ; nPOS_MAX_Y_2 = 50 ; nPOS_MAX_Y_3 = 690
+nMIN_X = 001 ; nMAX_X = 550 ; nMIN_Y = 230 ; nMAX_Y = 550
+nFALSE = 0 ; nTRUE  = 1; nMIN_BIG_X = -300 ; nMAX_BIG_X = 800
+
+aPOS_MALOS = [
+              [050,100],[270,100],[500,100],
+              [050,200],[270,200],[500,200],
+              [050,300],[270,300],[500,300],
+             ]
+
+#---------------------------------------------------------------------
+# Definicion de Estructura de Datos.-
+#---------------------------------------------------------------------
+class eMalos(ct.Structure):
+ _fields_ = [
+             ('nF',ct.c_short),('nX',ct.c_short),('nY',ct.c_short),
+	   ('nR',ct.c_short),('dX',ct.c_short),('dY',ct.c_short),
+	   ('lV',ct.c_short)
+            ]
+
+class eBig(ct.Structure):
+ _fields_ = [
+             ('nX',ct.c_short),('nY',ct.c_short),('nR',ct.c_short),
+             ('dX',ct.c_short),('dY',ct.c_short)
+            ]
+
+class eNave(ct.Structure):
+ _fields_ = [
+             ('nX',ct.c_short),('nY',ct.c_short),('nR',ct.c_short),
+             ('dX',ct.c_short),('dY',ct.c_short)
+            ]
+
+#---------------------------------------------------------------------
+# Init PyGames
+#---------------------------------------------------------------------
+def Init():
+    pygame.init()
+    pygame.display.set_caption('Tarea 1 By Alberto Caro - 2013()')
+    return pygame.display.set_mode(nRES)
+
+#---------------------------------------------------------------------
+# Init Naves de los Malos
+#---------------------------------------------------------------------
+def Malos_Init():
+    for i in range(0,nMAX_MALOS):
+        aM[i].nF = i                # Primary Key Nave.-
+        aM[i].nX = aPOS_MALOS[i][0] # Columnas.-
+        aM[i].nY = aPOS_MALOS[i][1] # Filas.-
+        aM[i].nR = 100              # Rango de Desplazamiento.-
+        aM[i].dX = 000              # No se mueve en X.- Dire = 9
+        aM[i].dY = 000              # No se mueve en Y.- Dire = 9
+        aM[i].lV = nTRUE            # Esta Vivo.-
+    return
+
+#---------------------------------------------------------------------
+# Init Nave Mala Grande.-
+#---------------------------------------------------------------------
+def Big_Init():
+    eB.nX = 250
+    eB.nY = nPOS_MAX_Y_2
+    eB.nR = 300
+    eB.dX = 0
+    eB.dY = 0
+    return
+
+#---------------------------------------------------------------------
+# Init eNave Buena
+#---------------------------------------------------------------------
+def Nave_Init():
+    eN.nX = 310
+    eN.nY = nPOS_MAX_Y_3
+    eN.nR = 100 + RA.randint(001,200)
+    eN.dX = 000
+    eN.dY = 000
+    return
+
+#---------------------------------------------------------------------
+# Carga imagenes y convierte formato pygame
+#---------------------------------------------------------------------
+def Load_Image(sFile,transp = False):
+    try: image = pygame.image.load(sFile)
+    except pygame.error,message:
+           raise SystemExit,message
+    image = image.convert()
+    if transp:
+       color = image.get_at((0,0))
+       image.set_colorkey(color,RLEACCEL)
+    return image
+
+#---------------------------------------------------------------------
+# Pinta Fondo (BackGround)
+#---------------------------------------------------------------------
+def Pinta_Fondo():
+    Panta.blit(Bkg1,(000,000))
+    return
+
+#--------------------------------------------------------------
+# Handle de Pause.-
+#--------------------------------------------------------------
+def Pausa():
+    while 1:
+     e = pygame.event.wait()
+     if e.type in (pygame.QUIT, pygame.KEYDOWN):
+        return
+
+#---------------------------------------------------------------------
+# Pinta Naves Malas
+#---------------------------------------------------------------------
+def Pinta_Malos():
+     for i in range(0,nMAX_MALOS):
+        aM[i].nR -= 1                      #reduccion de contador de movimiento "nR" en 1.
+        if aM[i].nR < 0:                   #Si "nR" llega a ser menor que cero, se resetea a un numero aleatorio.
+           aM[i].nR = RA.randint(100,500)  #Entre 100 y 500 se cambia la direccion de movimiento al azar
+           nDir = RA.randint(1,9)          #La variable nDir se genera un numero al azar entre 1 y 9.
+           if nDir == 1: aM[i].dX = +0 ; aM[i].dY = -1
+           elif nDir == 2: aM[i].dX = +1 ; aM[i].dY = -1
+           elif nDir == 3: aM[i].dX = +1 ; aM[i].dY = +0  #Si nDir es 3 se mueve de manera horizontal hacia la derecha
+           elif nDir == 4: aM[i].dX = +1 ; aM[i].dY = +1  #Si nDir es 4 se mueve de manera vertical hacia abajo y horizontal hacia la derecha.
+           elif nDir == 5: aM[i].dX = +0 ; aM[i].dY = -1  #Si nDir es 5 se mueve de manera vertical hacia arriba.
+           elif nDir == 6: aM[i].dX = -1 ; aM[i].dY = +1
+           elif nDir == 7: aM[i].dX = -1 ; aM[i].dY = +0
+           elif nDir == 8: aM[i].dX = +0 ; aM[i].dY = -1
+           else:
+             aM[i].dX = +0 ; aM[i].dY = +0  #Fuera del rango(eL robot se queda quieto.)
+
+        #Cada enemigo tiene una propiedad llamada "nF", que es un numero entero que representa el cuadro de animacion actual del enemigo.
+        #por ejemplo "Elif" se compara el valor de "nF" con diferentes numeros y muestran la imagen correspondiente con la funcion blit de Pygame.
+
+        if aM[i].nF ==   0: Panta.blit(Img01,(aM[i].nX,aM[i].nY))
+        elif aM[i].nF == 1: Panta.blit(Img02,(aM[i].nX,aM[i].nY))
+        elif aM[i].nF == 2: Panta.blit(Img03,(aM[i].nX,aM[i].nY))
+        elif aM[i].nF == 3: Panta.blit(Img04,(aM[i].nX,aM[i].nY))
+        elif aM[i].nF == 4: Panta.blit(Img05,(aM[i].nX,aM[i].nY))
+        elif aM[i].nF == 5: Panta.blit(Img06,(aM[i].nX,aM[i].nY))
+        elif aM[i].nF == 6: Panta.blit(Img07,(aM[i].nX,aM[i].nY))
+        elif aM[i].nF == 7: Panta.blit(Img08,(aM[i].nX,aM[i].nY))
+        else:               Panta.blit(Img09,(aM[i].nX,aM[i].nY))
+
+     return
+
+#---------------------------------------------------------------------
+# Actualiza Naves Malas.-
+#---------------------------------------------------------------------
+def UpDate_Malos():
+     for i in range(0,nMAX_MALOS):
+        aM[i].nR -= 1
+        if aM[i].nR < 0:
+           aM[i].nR = RA.randint(100,500)
+           nDir = RA.randint(1,9)
+           if nDir == 1: aM[i].dX = +0 ; aM[i].dY = -1
+           elif nDir == 2: aM[i].dX = +1 ; aM[i].dY = -1
+           elif nDir == 3: aM[i].dX = +1 ; aM[i].dY = +0
+           elif nDir == 4: aM[i].dX = +1 ; aM[i].dY = +1
+           elif nDir == 5: aM[i].dX = +0 ; aM[i].dY = -1
+           elif nDir == 6: aM[i].dX = -1 ; aM[i].dY = +1
+           elif nDir == 7: aM[i].dX = -1 ; aM[i].dY = +0
+           elif nDir == 8: aM[i].dX = +0 ; aM[i].dY = -1
+           else:
+             aM[i].dX = +0 ; aM[i].dY = +0
+
+        aM[i].nX += aM[i].dX*1 #Actualizacion de la nave y su velocidad en X
+        aM[i].nY += aM[i].dY*1 #Actualizacion de la nave y su velocidad en Y
+
+        if aM[i].nX < nMIN_X: aM[i].nX = nMIN_X ; aM[i].nR = 0 # condicion de limitacion de aM[i] dentro de los limites de la pantalla
+        if aM[i].nX > nMAX_X: aM[i].nX = nMAX_X ; aM[i].nR = 0 # condicion de limtacion de  aM[i] dentro de los limites de la pantalla.
+        if aM[i].nY < nMIN_Y: aM[i].nY = nMIN_Y ; aM[i].nR = 0
+        if aM[i].nY > nMAX_Y: aM[i].nY = nMAX_Y ; aM[i].nR = 0
+
+     return
+
+
+#---------------------------------------------------------------------
+# Pinta Big Nave
+#---------------------------------------------------------------------
+def Pinta_Big_Nave():
+    Panta.blit(Img10,(eB.nX,eB.nY))
+    return
+
+#---------------------------------------------------------------------
+# Actualiza Big Nave
+#---------------------------------------------------------------------
+def UpDate_Big_Nave():
+    eB.nR -= 1
+    if eB.nR < 0:
+        eB.nR = 300
+        nDir2 = RA.randint(1,2)
+        if nDir2 == 1: #ESTE
+           eB.dX = +1
+        if nDir2 == 2: #OESTE
+           eB.dX = -1
+
+    eB.nX += eB.dX*3 # actualizacion de la nave y su velocidad
+
+    if eB.nX < nMIN_BIG_X:
+        eB.nX = nMIN_BIG_X ; eB.nR = 0 #limitacion de posicion dentro de la pantalla.
+
+    if eB.nX > nMAX_BIG_X:
+        eB.nX = nMAX_BIG_X ; eB.nR = 0 #limitacion de posicion dentro de la pantalla.
+
+    return
+
+#---------------------------------------------------------------------
+# Pinta Nave Buena
+#---------------------------------------------------------------------
+def Pinta_Nave_Buena():
+    Panta.blit(Img00,(eN.nX,eN.nY))
+    return
+
+#---------------------------------------------------------------------
+# Actualiza Nave Buena
+#---------------------------------------------------------------------
+def UpDate_Nave_Buena():
+    eN.nR -= 1
+    if eN.nR < 0:
+        eN.nR = 100 + RA.randint(001,200)
+        nDir3 = RA.randint(1,2)
+        if nDir3 == 1: #ESTE
+           eN.dX = +1
+        if nDir3 == 2: #OESTE
+           eN.dX = -1
+    eN.nX += eN.dX*3  # aumento de velocidad de la nave y cambio actualizacion de posicion
+
+        #Verificamos si el robot se sale del limite izquierdo
+    if eN.nX < 0:
+        eN.nX = 0 #establecemos la posicion del robot en el limite izquierdo
+        eN.dX = 1 #cambiamos la direccion de movimiento a la derecha
+        eB.nR = 0 #Reiniciamos el "Contador de pasos"
+
+      #Verificamos si el robot se sale del limite derecho
+    if eN.nX > 550:
+        eN.nX = 550 #Establecemos la posicion del robot en el limite derecho
+        eN.dX = -1 #Cambiamos la direccion de movimiento a la derecha
+        eN.nR = 0 #Reiniciamos el "Contador de pasos"
+
+    return
+
+#---------------------------------------------------------------------
+# Logica Main de la Simulacion
+#---------------------------------------------------------------------
+Panta = Init()
+Bkg1  = Load_Image('bkg1.png',False) # Load Fondo
+Bkg2  = Load_Image('bkg2.png',False) # Fondo 2
+Bkg3  = Load_Image('bkg3.png',False) # Fondo 3
+Img00 = Load_Image('n1.png',True) # Nave Buena
+Img01 = Load_Image('m1.png',True) # Malo 1
+Img02 = Load_Image('m2.png',True )   # Malo 2
+Img03 = Load_Image('m3.png',True )   # Malo 3
+Img04 = Load_Image('m4.png',True )   # Malo 4
+Img05 = Load_Image('m5.png',True )   # Malo 5
+Img06 = Load_Image('m6.png',True )   # Malo 6
+Img07 = Load_Image('m7.png',True )   # Malo 7
+Img08 = Load_Image('m8.png',True )   # Malo 8
+Img09 = Load_Image('m9.png',True )   # Malo 9
+Img10 = Load_Image('big.png',True)   # Nave Gigante
+
+aM = [ eMalos() for i in range(0,nMAX_MALOS) ]
+eB = eBig() ; eN = eNave(); Malos_Init(); Big_Init(); Nave_Init()
+
+clock = pygame.time.Clock()
+
+lOK = 1
+while lOK:
+ cKey = pygame.key.get_pressed()
+ if cKey[pygame.K_F1]: Bkg1 = Load_Image('bkg1.png',False)  #Si la tecla "F1" es presionada, se carga la imagen "bkg1.png"
+ if cKey[pygame.K_F2]: Bkg1 = Load_Image('bkg2.png',False)  #Si la tecla "F2" es presionada, se carga la imagen "bkg2.png"
+ if cKey[pygame.K_F3]: Bkg1 = Load_Image('bkg3.png',False)  #Si la tecla "F3" es presionada, se carga la imagen "bkg3.png"
+ pygame.display.update()
+
+ ev = pygame.event.get()
+ for e in ev:
+     if cKey[pygame.K_ESCAPE]:
+        lOK = 'a' > 'b'
+     if cKey[pygame.K_p]:
+        Pausa()
+     if e.type == QUIT:
+        lOK = 0
+
+#Zona para hacer efectivo cada uno de los cambios realizados en el programa.
+ Pinta_Fondo()
+ Pinta_Malos()
+ UpDate_Malos()
+ Pinta_Big_Nave()
+ UpDate_Big_Nave()
+ Pinta_Nave_Buena()
+ UpDate_Nave_Buena()
+
+
+ pygame.display.flip()
+ clock.tick(100)
