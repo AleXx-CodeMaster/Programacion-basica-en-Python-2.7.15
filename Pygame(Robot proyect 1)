@@ -115,24 +115,6 @@ def Pausa():
 #---------------------------------------------------------------------
 def Pinta_Malos():
      for i in range(0,nMAX_MALOS):
-        aM[i].nR -= 1                      #reduccion de contador de movimiento "nR" en 1.
-        if aM[i].nR < 0:                   #Si "nR" llega a ser menor que cero, se resetea a un numero aleatorio.
-           aM[i].nR = RA.randint(100,500)  #Entre 100 y 500 se cambia la direccion de movimiento al azar
-           nDir = RA.randint(1,9)          #La variable nDir se genera un numero al azar entre 1 y 9.
-           if nDir == 1: aM[i].dX = +0 ; aM[i].dY = -1
-           elif nDir == 2: aM[i].dX = +1 ; aM[i].dY = -1
-           elif nDir == 3: aM[i].dX = +1 ; aM[i].dY = +0  #Si nDir es 3 se mueve de manera horizontal hacia la derecha
-           elif nDir == 4: aM[i].dX = +1 ; aM[i].dY = +1  #Si nDir es 4 se mueve de manera vertical hacia abajo y horizontal hacia la derecha.
-           elif nDir == 5: aM[i].dX = +0 ; aM[i].dY = -1  #Si nDir es 5 se mueve de manera vertical hacia arriba.
-           elif nDir == 6: aM[i].dX = -1 ; aM[i].dY = +1
-           elif nDir == 7: aM[i].dX = -1 ; aM[i].dY = +0
-           elif nDir == 8: aM[i].dX = +0 ; aM[i].dY = -1
-           else:
-             aM[i].dX = +0 ; aM[i].dY = +0  #Fuera del rango(eL robot se queda quieto.)
-
-        #Cada enemigo tiene una propiedad llamada "nF", que es un numero entero que representa el cuadro de animacion actual del enemigo.
-        #por ejemplo "Elif" se compara el valor de "nF" con diferentes numeros y muestran la imagen correspondiente con la funcion blit de Pygame.
-
         if aM[i].nF ==   0: Panta.blit(Img01,(aM[i].nX,aM[i].nY))
         elif aM[i].nF == 1: Panta.blit(Img02,(aM[i].nX,aM[i].nY))
         elif aM[i].nF == 2: Panta.blit(Img03,(aM[i].nX,aM[i].nY))
